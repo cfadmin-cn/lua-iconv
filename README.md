@@ -4,13 +4,13 @@ An extension library with lua-iconv
 
 ## API
 
-  Lua uses unicode encoding; therefore, we only provide UTF-8 to other encodings and other encodings to UTF-8.
+  The `liconv` library only provides `UTF-8` to other character sets and other character sets to `UTF-8`.
 
 ### 1. liconv.from
 
   Function prototype: `liconv.from(opcode, text)`
 
-  This method will convert the content of the `text` parameter from the `opcode` encoding to the `UTF-8` encoding. In any case, the encoding conversion error will throw an exception;
+  This method will convert everything in the `text` parameter from the `opcode` character set to the `UTF-8` character set. In any case, an exception will be raised as long as the encoding conversion error occurs.
 
   The `opcode` parameter is a string type, and the optional value of `opcode` will be listed at the end of the document;
 
@@ -18,7 +18,7 @@ An extension library with lua-iconv
 
   Function prototype: `liconv.to(opcode, text)`
 
-  This method will convert the content of the `text` parameter from `UTF-8` to the encoding determined by the `opcode` parameter. Any conversion error in any sense will throw an exception;
+  This method will convert everything in the `text` parameter from the `UTF-8` character set to the character set specified by the `opcode` parameter; in any case, an exception will be raised as long as the conversion error occurs.
 
   The `opcode` parameter is a string type, and the optional value of `opcode` will be listed at the end of the document;
 
