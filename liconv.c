@@ -59,7 +59,7 @@ static int lconvert_from(lua_State *L) {
 }
 
 // 从UTF-8转换为其他字符集
-static int lconvert_tO(lua_State *L) {
+static int lconvert_to(lua_State *L) {
   errno = 0;
   const char* opcode = luaL_checkstring(L, 1);
   if (!opcode)
@@ -82,7 +82,7 @@ luaopen_liconv(lua_State *L) {
   luaL_checkversion(L);
   luaL_Reg iconv_libs[] = {
     {"from", lconvert_from},
-    {"to", lconvert_tO},
+    {"to", lconvert_to},
     {NULL, NULL},
   };
   luaL_newlib(L, iconv_libs);
