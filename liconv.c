@@ -12,21 +12,27 @@
 #include <iconv.h>
 */
 
+#ifndef _LIBICONV_VERSION
+  #define _LIBICONV_VERSION (1 << 8)
+#endif
+
+/* 获取libiconv 大、小版本号 */
+#define luaL_geticonv(max, min) ({ if (max) *max = _LIBICONV_VERSION >> 8; if (min) *min = (_LIBICONV_VERSION - ((_LIBICONV_VERSION >> 8) << 8));})
+
+/* 为lib注入 key -> number 数据 */
+#define luaL_setkn(L, k, n) ({ lua_pushstring(L, k); lua_pushnumber(L, n) ; lua_rawset(L, -3);})
+
+/* 为lib注入 key -> string 数据 */
+#define luaL_setkv(L, k, v) ({ lua_pushstring(L, k); lua_pushstring(L, v) ; lua_rawset(L, -3);})
+
 // 开始转换
 static inline int convert(lua_State *L, iconv_t cd, const char* text, size_t size) {
-  size_t insize = size;
-  char *in_buf = lua_newuserdata(L, insize);
-  if (!in_buf) {
-    iconv_close(cd);
-    return luaL_error(L, "Not enough memory.");
-  }
-  memcpy(in_buf, text, size);
-
   luaL_Buffer B;
   size_t outsize = size * 3;
   char *out_buf = luaL_buffinitsize(L, &B, outsize);
 
-  char **inbuf = &in_buf;
+  size_t insize = size;
+  char **inbuf = (char**)&text;
   char **outbuf = &out_buf;
   int ret = iconv(cd, inbuf, &insize, outbuf, &outsize);
   if (ret == -1){
@@ -77,14 +83,27 @@ static int lconvert_to(lua_State *L) {
   return convert(L, cd, text, size);
 }
 
+//  初始化内置库
+static inline void luaL_add_iconv_version(lua_State *L) {
+  /* 根据情况拿到大、小版本号 */
+  lua_Integer max = 0; lua_Integer min = 0;
+  luaL_geticonv(&max, &min);
+
+  // 导入libiconv版本号
+  luaL_setkn(L, "LIBICONV_VERSION", max + /* 如果小版本大于100 */ (min > 99 ? min * 1e-3 : min * 1e-2 ));
+  // 导入lua-iconv版本号
+  luaL_setkn(L, "VERSION", 0.1);
+}
+
 LUAMOD_API int
 luaopen_liconv(lua_State *L) {
   luaL_checkversion(L);
   luaL_Reg iconv_libs[] = {
-    {"from", lconvert_from},
-    {"to", lconvert_to},
+    { "from", lconvert_from },
+    { "to", lconvert_to },
     {NULL, NULL},
   };
   luaL_newlib(L, iconv_libs);
+  luaL_add_iconv_version(L);
   return 1;
 }
