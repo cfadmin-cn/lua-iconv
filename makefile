@@ -17,7 +17,7 @@ prepare:
 	@cd libiconv-* && ./configure --prefix=/usr/local && make && make install
 	@rm -rf libiconv*
 
-# 构建libiconv库依赖
+# 构建liconv.so依赖库
 rebuild:
 # 	@$(MAKE) prepare
 	@$(CC) -o liconv.so liconv.c $(CFLAGS) $(INCLUDES) $(LIBS) -lcore -llua -liconv
