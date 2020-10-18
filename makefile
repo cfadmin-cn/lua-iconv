@@ -1,9 +1,10 @@
-.PHONY : build rebuild
+.PHONY : build rebuild test
 
 default :
 	@echo "======================================="
 	@echo "Please use 'make build' command to build it.."
 	@echo "Please use 'make rebuild' command to build it.."
+	@echo "Please use 'make test' command to build it.."
 	@echo "======================================="
 
 INCLUDES += -I../../../src -I/usr/local/include
@@ -19,10 +20,16 @@ prepare:
 
 # 构建liconv.so依赖库
 rebuild:
-# 	@$(MAKE) prepare
+# @$(MAKE) prepare
 	@$(CC) -o liconv.so liconv.c $(CFLAGS) $(INCLUDES) $(LIBS) -lcore -llua -liconv
+	@mv *.so ../../
 
 # 构建liconv.so依赖库
 build:
-# 	@$(MAKE) prepare
+# @$(MAKE) prepare
 	@$(CC) -o liconv.so liconv.c $(CFLAGS) $(INCLUDES) $(LIBS) -lcore -llua -liconv
+	@mv *.so ../../
+
+test:
+# @$(MAKE) prepare
+	@$(CC) -o liconv.so liconv.c $(CFLAGS) $(INCLUDES) $(LIBS) -llua -liconv
