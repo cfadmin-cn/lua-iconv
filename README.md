@@ -2,6 +2,18 @@
 
 An extension library with lua-iconv
 
+## Build
+
+### 一、 Makefile
+
+  1. 从[这里](https://ftp.gnu.org/pub/gnu/libiconv/)地方下载最新版本的`libiconv`后, 解压并且安装到系统内部;
+
+  2. `libiconv`安装到系统目录下之后, 我们使用`make build`命令来安装`lua-iconv`到`lualib`;
+
+  3. 完成.
+
+### 二、 CMakeLists
+
 ## API
 
   The `liconv` library only provides `UTF-8` to other character sets and other character sets to `UTF-8`.
