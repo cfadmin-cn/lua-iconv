@@ -11,7 +11,7 @@ INCLUDES += -I../../../src -I/usr/local/include -I/usr/local/opt/libiconv/includ
 LIBS = -L../ -L../../ -L../../../ -L/usr/local/lib -L/usr/local/opt/libiconv/lib
 # CFLAGS = -Wall -O3 -fPIC --shared -DJEMALLOC -ljemalloc -Wl,-rpath,. -Wl,-rpath,.. -Wl,-rpath,/usr/local/lib
 # CFLAGS = -Wall -O3 -fPIC --shared -DTCMALLOC -ltcmalloc -Wl,-rpath,. -Wl,-rpath,.. -Wl,-rpath,/usr/local/lib
-CFLAGS = -Wall -O3 -fPIC --shared -Wl,-rpath,. -Wl,-rpath,.. -Wl,-rpath,/usr/local/lib
+CFLAGS = -Wall -O3 -fPIC --shared -Wl,-rpath,. -Wl,-rpath,.. -Wl,-rpath,/usr/local/lib -Wl,-rpath,/usr/local/opt/libiconv/lib
 
 prepare:
 	@wget -O libiconv.tar.gz https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.16.tar.gz && tar zxvf libiconv.tar.gz
