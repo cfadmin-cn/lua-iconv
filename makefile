@@ -14,7 +14,7 @@ LIBS = -L../ -L../../../ -L/usr/local/lib
 CFLAGS = -Wall -O3 -fPIC --shared -Wl,-rpath,. -Wl,-rpath,.. -Wl,-rpath,/usr/local/lib
 
 prepare:
-	@wget wget -O libiconv.tar.gz https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.16.tar.gz && tar zxvf libiconv.tar.gz
+	@wget -O libiconv.tar.gz https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.16.tar.gz && tar zxvf libiconv.tar.gz
 	@cd libiconv-* && ./configure --prefix=/usr/local && make && make install
 	@rm -rf libiconv*
 
