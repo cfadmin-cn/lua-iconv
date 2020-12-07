@@ -1,16 +1,7 @@
 #define LUA_LIB
 
-// #include <lua.h>
-// #include <lauxlib.h>
-// #include <stdlib.h>
-
-#include <errno.h>
-#include <iconv.h>
-
-
 #include <core.h>
 #include <iconv.h>
-
 
 #ifndef _LIBICONV_VERSION
   #define _LIBICONV_VERSION (1 << 8)
