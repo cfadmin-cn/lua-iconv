@@ -2,27 +2,11 @@
 
 An extension library with lua-iconv
 
-## Build
+## Installation
 
-### 一、 Makefile
+  * Use the `git clone` command to clone the code into the `3rd` directory of the framework.
 
-  1. Use the `git clone` command to download it to the `luaclib` directory, and then use the `cd lua-iconv` command to enter the directory;
-
-  2. Use `make prepare` or use commands such as `apt / yum / pacman` to install the dependent library `libiconv`;
-
-  3. Use the `make build` or `make rebuild` command to install to the `luaclib` directory;
-
-  4. If there is no error in the above steps, the installation is successful;
-
-### 二、 CMakeLists
-
-  1. First add `find_package(ICONV REQUIRED)` inside the file;
-
-  2. Then add the file search path `aux_source_directory(luaclib/src/lua-iconv liconv)`;
-
-  3. Finally, add two compilation commands `ADD_LIBRARY(liconv SHARED ${liconv})` and `target_link_libraries(liconv core iconv)`
-
-  4. Go to the root directory of the [cf](https://github.com/CandyMi/core_framework) framework and execute `mkdir build && cmake .. && make` to successfully compile.
+  * Finally, use the `make build` command to compile the code without errors, then you can start using it in the project.
 
 ## API
 
