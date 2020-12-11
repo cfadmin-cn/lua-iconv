@@ -7,7 +7,7 @@ default :
 	@echo "Please use 'make test' command to build it.."
 	@echo "======================================="
 
-INCLUDES += -I../../../src -I/usr/local/include -I/usr/local/opt/libiconv/include
+INCLUDES += -I../ -I../../ -I../../../ -I/usr/local/include -I/usr/local/opt/libiconv/include
 LIBS = -L../ -L../../ -L../../../ -L/usr/local/lib -L/usr/local/opt/libiconv/lib
 # CFLAGS = -Wall -O3 -fPIC --shared -DJEMALLOC -ljemalloc -Wl,-rpath,. -Wl,-rpath,.. -Wl,-rpath,/usr/local/lib
 # CFLAGS = -Wall -O3 -fPIC --shared -DTCMALLOC -ltcmalloc -Wl,-rpath,. -Wl,-rpath,.. -Wl,-rpath,/usr/local/lib
@@ -22,13 +22,13 @@ prepare:
 rebuild:
 # @$(MAKE) prepare
 	@$(CC) -o liconv.so liconv.c $(CFLAGS) $(INCLUDES) $(LIBS) -lcore -llua -liconv
-	@mv *.so ../../
+	@mv *.so ../
 
 # 构建liconv.so依赖库
 build:
 # @$(MAKE) prepare
 	@$(CC) -o liconv.so liconv.c $(CFLAGS) $(INCLUDES) $(LIBS) -lcore -llua -liconv
-	@mv *.so ../../
+	@mv *.so ../
 
 test:
 # @$(MAKE) prepare

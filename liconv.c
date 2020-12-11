@@ -1,6 +1,6 @@
 #define LUA_LIB
 
-#include <core.h>
+#include "../../src/core.h"
 #include <iconv.h>
 
 #ifndef _LIBICONV_VERSION
