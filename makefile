@@ -21,15 +21,11 @@ prepare:
 # 构建liconv.so依赖库
 rebuild:
 # @$(MAKE) prepare
-	@$(CC) -o liconv.so liconv.c $(CFLAGS) $(INCLUDES) $(LIBS) -lcore -llua -liconv
+	@$(CC) -o liconv.so liconv.c $(CFLAGS) $(INCLUDES) $(LIBS) -lcore -liconv
 	@mv *.so ../
 
 # 构建liconv.so依赖库
 build:
 # @$(MAKE) prepare
-	@$(CC) -o liconv.so liconv.c $(CFLAGS) $(INCLUDES) $(LIBS) -lcore -llua -liconv
+	@$(CC) -o liconv.so liconv.c $(CFLAGS) $(INCLUDES) $(LIBS) -lcore -liconv
 	@mv *.so ../
-
-test:
-# @$(MAKE) prepare
-	@$(CC) -o liconv.so liconv.c $(CFLAGS) $(INCLUDES) $(LIBS) -llua -liconv
