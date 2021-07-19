@@ -40,23 +40,24 @@ static inline int convert(lua_State *L, uint8_t mode, const char* opcode, const 
 
   iconv_t cd = new_iconv(mode, opcode);
   if (cd == (iconv_t)-1)
-    return luaL_error(L, "Unsupported character set: %s", opcode);
+    return luaL_error(L, "[ICONV ERROR]: Unsupported characterset (%s).", opcode);
 
   luaL_Buffer B;
-  size_t outsize = size * 3;
+  size_t outsize = size * 4;
   char *out_buf = luaL_buffinitsize(L, &B, outsize);
 
   size_t insize = size;
   char **inbuf = (char**)&text;
-  char **outbuf = &out_buf;
-  int ret = iconv(cd, inbuf, &insize, outbuf, &outsize);
-  if (ret == -1){
+  char **outbuf = (char**)&out_buf;
+  if (iconv(cd, inbuf, &insize, outbuf, &outsize) == -1){
     iconv_close(cd);
-    luaL_pushresultsize(&B, 0);
-    return luaL_error(L, strerror(errno));
+    lua_pushboolean(L, 0);
+    lua_pushfstring(L, "[ICONV ERROR]: %s. (%d)", strerror(errno), errno);
+    return 2;
   }
+  // 转换缓存
   iconv_close(cd);
-  luaL_pushresultsize(&B, (size * 3) - outsize);
+  luaL_pushresultsize(&B, (size * 4) - outsize);
   return 1;
 }
 
@@ -65,12 +66,12 @@ static int lconvert_from(lua_State *L) {
   errno = 0;
   const char* opcode = luaL_checkstring(L, 1);
   if (!opcode)
-    return luaL_error(L, "Invalid conversion character set.");
+    return luaL_error(L, "[ICONV ERROR]: Invalid conversion character set.");
 
   size_t size = 0;
   const char* text = luaL_checklstring(L, 2, &size);
   if (!text)
-    return luaL_error(L, "Please fill in the text content to be converted.");
+    return luaL_error(L, "[ICONV ERROR]: Please fill in the text content to be converted.");
 
   return convert(L, CONVERT_FROM, opcode, text, size);
 }
@@ -80,12 +81,12 @@ static int lconvert_to(lua_State *L) {
   errno = 0;
   const char* opcode = luaL_checkstring(L, 1);
   if (!opcode)
-    return luaL_error(L, "Invalid conversion character set.");
+    return luaL_error(L, "[ICONV ERROR]: Invalid conversion character set.");
 
   size_t size = 0;
   const char* text = luaL_checklstring(L, 2, &size);
   if (!text)
-    return luaL_error(L, "Please fill in the text content to be converted.");
+    return luaL_error(L, "[ICONV ERROR]: Please fill in the text content to be converted.");
 
   return convert(L, CONVERT_TO, opcode, text, size);
 }
