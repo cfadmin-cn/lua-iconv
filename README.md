@@ -28,7 +28,13 @@ An extension library with lua-iconv
 
   The `opcode` parameter is a string type, and the optional value of `opcode` will be listed at the end of the document;
 
-### 3. opcode
+### 3. liconv.convert
+
+  Function prototype: `liconv.convert(to_opcode, from_opcode, text)`
+  
+  Convert the content of `text` from `from_opcode` to `to_opcode`, where `from_opcode` is the current encoding of `text`, and `to_opcode` is the converted encoding of `text`. The return value is the converted content of `text`. 
+
+### 4. opcode
 
   `opcode` includes but is not limited to the following values, the specific convertible encoding is determined by the operating system and dependent library version.
 
