@@ -116,6 +116,83 @@ static int lconvert_to(lua_State *L) {
   return convert(L, CONVERT_TO, opcode, text, size);
 }
 
+// 从UTF-8转换为GBK
+static int lconvert_gbk(lua_State *L) {
+  size_t size = 0;
+  const char* text = luaL_checklstring(L, 1, &size);
+  return convert(L, CONVERT_TO, "GBK", text, size);
+}
+
+// 从UTF-8转换为GBK2312
+static int lconvert_gb2312(lua_State *L) {
+  size_t size = 0;
+  const char* text = luaL_checklstring(L, 1, &size);
+  return convert(L, CONVERT_TO, "GB2312", text, size);
+}
+
+// 从UTF-8转换为GB18030
+static int lconvert_gb18030(lua_State *L) {
+  size_t size = 0;
+  const char* text = luaL_checklstring(L, 1, &size);
+  return convert(L, CONVERT_TO, "GB18030", text, size);
+}
+
+// 从UTF-8转换为UTF-16
+static int lconvert_u16(lua_State *L) {
+  size_t size = 0;
+  const char* text = luaL_checklstring(L, 1, &size);
+  return convert(L, CONVERT_TO, "UTF-16", text, size);
+}
+
+// 从UTF-8转换为UTF-32
+static int lconvert_u32(lua_State *L) {
+  size_t size = 0;
+  const char* text = luaL_checklstring(L, 1, &size);
+  return convert(L, CONVERT_TO, "UTF-32", text, size);
+}
+
+// 从UTF-8转换为UCS-2
+static int lconvert_ucs2(lua_State *L) {
+  size_t size = 0;
+  const char* text = luaL_checklstring(L, 1, &size);
+  return convert(L, CONVERT_TO, "UCS-2", text, size);
+}
+
+// 从UTF-8转换为UCS-2BE
+static int lconvert_ucs2be(lua_State *L) {
+  size_t size = 0;
+  const char* text = luaL_checklstring(L, 1, &size);
+  return convert(L, CONVERT_TO, "UCS-2BE", text, size);
+}
+
+// 从UTF-8转换为UCS-2LE
+static int lconvert_ucs2le(lua_State *L) {
+  size_t size = 0;
+  const char* text = luaL_checklstring(L, 1, &size);
+  return convert(L, CONVERT_TO, "UCS-2LE", text, size);
+}
+
+// 从UTF-8转换为UCS-4
+static int lconvert_ucs4(lua_State *L) {
+  size_t size = 0;
+  const char* text = luaL_checklstring(L, 1, &size);
+  return convert(L, CONVERT_TO, "UCS-4", text, size);
+}
+
+// 从UTF-8转换为UCS-4BE
+static int lconvert_ucs4be(lua_State *L) {
+  size_t size = 0;
+  const char* text = luaL_checklstring(L, 1, &size);
+  return convert(L, CONVERT_TO, "UCS-4BE", text, size);
+}
+
+// 从UTF-8转换为UCS-4LE
+static int lconvert_ucs4le(lua_State *L) {
+  size_t size = 0;
+  const char* text = luaL_checklstring(L, 1, &size);
+  return convert(L, CONVERT_TO, "UCS-4LE", text, size);
+}
+
 //  初始化内置库
 static inline void luaL_add_iconv_version(lua_State *L) {
   /* 根据情况拿到大、小版本号 */
@@ -134,6 +211,18 @@ luaopen_liconv(lua_State *L) {
     { "convert", lconvert_convert },
     { "from", lconvert_from },
     { "to", lconvert_to },
+    /* 增加UTF-8转为常用的字符集方法 */
+    { "u16", lconvert_u16 },
+    { "u32", lconvert_u32 },
+    { "gbk", lconvert_gbk },
+    { "gb2312", lconvert_gb2312 },
+    { "gb18030", lconvert_gb18030 },
+    { "ucs2", lconvert_ucs2 },
+    { "ucs2be", lconvert_ucs2be },
+    { "ucs2le", lconvert_ucs2le },
+    { "ucs4", lconvert_ucs4 },
+    { "ucs4be", lconvert_ucs4be },
+    { "ucs4le", lconvert_ucs4le },
     {NULL, NULL},
   };
   luaL_newlib(L, iconv_libs);
