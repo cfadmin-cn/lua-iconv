@@ -10,6 +10,8 @@
 #define CONVERT_TO (0)
 #define CONVERT_FROM (1)
 
+#define CONVERT_BLOCK (512)
+
 /* 为lib注入 key -> number 数据 */
 #define luaL_setkn(L, k, n) ({ lua_pushstring(L, k); lua_pushnumber(L, n) ; lua_rawset(L, -3); })
 
@@ -26,22 +28,31 @@ static inline void luaL_geticonv(lua_Integer* max, lua_Integer* min) {
 
 /* 实际转换代码 */
 static inline int iconv_convert(lua_State *L, iconv_t cd, const char* text, size_t size) {
-  luaL_Buffer B;
-  size_t outsize = size * 4;
-  char *out_buf = luaL_buffinitsize(L, &B, outsize);
 
-  size_t insize = size;
-  char **inbuf = (char**)&text;
-  char **outbuf = (char**)&out_buf;
-  if (iconv(cd, inbuf, &insize, outbuf, &outsize) == -1){
-    iconv_close(cd);
-    lua_pushboolean(L, 0);
-    lua_pushfstring(L, "[ICONV ERROR]: %s. (%d)", strerror(errno), errno);
-    return 2;
+  luaL_Buffer B;
+  luaL_buffinit(L, &B);
+
+  size_t osize = CONVERT_BLOCK;
+  char *buf = alloca(CONVERT_BLOCK);
+  char *out = buf;
+  char *in = (char *)text;
+  while (-1 == iconv(cd, (char**)&in, &size, (char**)&out, &osize))
+  {
+    /* 只有空间不足继续尝试 */
+    if (errno != E2BIG) {
+      lua_pushboolean(L, 0);
+      lua_pushfstring(L, "[ICONV ERROR]: %s. (%d)", strerror(errno), errno);
+      iconv_close(cd);
+      return 2;
+    }
+    luaL_addlstring(&B, buf, CONVERT_BLOCK - osize);
+    out = buf; osize = CONVERT_BLOCK; errno = 0;
   }
-  // 转换缓存
+  /* 结束 */
+  luaL_addlstring(&B, buf, CONVERT_BLOCK - osize);
+  luaL_pushresult(&B);
   iconv_close(cd);
-  luaL_pushresultsize(&B, (size * 4) - outsize);
+  errno = 0;
   return 1;
 }
 
@@ -62,6 +73,8 @@ static inline int convert(lua_State *L, uint8_t mode, const char* opcode, const 
   if (cd == (iconv_t)-1)
     return luaL_error(L, "[ICONV ERROR]: Unsupported characterset (%s).", opcode);
 
+  /* 初始化 */
+  iconv(cd, NULL, NULL, NULL, NULL);
   return iconv_convert(L, cd, text, size);
 }
 
@@ -95,7 +108,7 @@ static int lconvert_from(lua_State *L) {
 
   size_t size = 0;
   const char* text = luaL_checklstring(L, 2, &size);
-  if (!text)
+  if (!text || size < 1)
     return luaL_error(L, "[ICONV ERROR]: Please fill in the text content to be converted.");
 
   return convert(L, CONVERT_FROM, opcode, text, size);
@@ -110,7 +123,7 @@ static int lconvert_to(lua_State *L) {
 
   size_t size = 0;
   const char* text = luaL_checklstring(L, 2, &size);
-  if (!text)
+  if (!text || size < 1)
     return luaL_error(L, "[ICONV ERROR]: Please fill in the text content to be converted.");
 
   return convert(L, CONVERT_TO, opcode, text, size);
