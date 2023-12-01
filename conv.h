@@ -13,10 +13,12 @@
   int ucnv_convert(const char *to, const char *from, char *target, int targetCapacity, const char *source, int sourceLength, UErrorCode *err);
 #else
   #define USE_ICONV
-  #include <iconv.h>
+
   #if defined(__linux__)
     #define LIBICONV_PLUG
   #endif
+
+  #include <iconv.h>
 
   #ifndef _LIBICONV_VERSION
     #define _LIBICONV_VERSION (1 << 8)
