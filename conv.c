@@ -1,56 +1,107 @@
-#define LUA_LIB
+#include "conv.h"
 
-#include <core.h>
-#include <iconv.h>
+#ifdef USE_ICU
 
-#ifndef _LIBICONV_VERSION
-  #define _LIBICONV_VERSION (1 << 8)
-#endif
+#define convert(L, OP, TO, TEXT, TSIZE) character_convert(L, "UTF-8", TO, TEXT, TSIZE)
 
-#define CONVERT_TO (0)
-#define CONVERT_FROM (1)
+static inline int character_convert(lua_State *L, const char* from, const char* to, const char* text, size_t tsize)
+{
+  UErrorCode err;
 
-#define CONVERT_BLOCK (512)
+  err = U_ZERO_ERROR;
+  ssize_t len = ucnv_convert(to, from, NULL, 0, text, tsize, &err);
+  if (U_FAILURE(err) && err != U_BUFFER_OVERFLOW_ERROR)
+    return luaL_error(L, "[ICU ERROR]: %s, %d", u_errorName(err), len);
 
-/* 为lib注入 key -> number 数据 */
-#define luaL_setkn(L, k, n) ({ lua_pushstring(L, k); lua_pushnumber(L, n) ; lua_rawset(L, -3); })
+  char *buf;
+  if (len < xrio_max_block)
+    buf = alloca(len);
+  else
+    buf = lua_newuserdata(L, len);
 
-/* 为lib注入 key -> string 数据 */
-#define luaL_setkv(L, k, v) ({ lua_pushstring(L, k); lua_pushstring(L, v) ; lua_rawset(L, -3); })
+  err = U_ZERO_ERROR;
+  len = ucnv_convert(to, from, buf, len, text, tsize, &err);
+  if (U_FAILURE(err))
+    return luaL_error(L, "[ICU ERROR]: %s, %d", u_errorName(err), len);
 
-/* 获取libiconv 大、小版本号 */
-static inline void luaL_geticonv(lua_Integer* max, lua_Integer* min) {
-  if (max)
-    *max = _LIBICONV_VERSION >> 8;
-  if (min)
-    *min = (_LIBICONV_VERSION - ((_LIBICONV_VERSION >> 8) << 8));
+  lua_pushlstring(L, buf, len);
+  return 1;
 }
+
+int lconvert_convert(lua_State *L)
+{
+  const char* to = luaL_checkstring(L, 1);
+  if (!to)
+    return luaL_error(L, "[ICU ERROR]: Invalid conversion character set. #1");
+  const char* from = luaL_checkstring(L, 2);
+  if (!from)
+    return luaL_error(L, "[ICU ERROR]: Invalid conversion character set. #2");
+
+  size_t size = 0;
+  const char* text = luaL_checklstring(L, 3, &size);
+  if (!text || size < 1)
+    return luaL_error(L, "[ICU ERROR]: Please fill in the text content to be converted."); 
+
+  return character_convert(L, from, to, text, size);
+}
+
+int lconvert_from(lua_State *L)
+{
+  const char* opcode = luaL_checkstring(L, 1);
+  if (!opcode)
+    return luaL_error(L, "[ICU ERROR]: Invalid conversion character set.");
+
+  size_t size = 0;
+  const char* text = luaL_checklstring(L, 2, &size);
+  if (!text || size < 1)
+    return luaL_error(L, "[ICU ERROR]: Please fill in the text content to be converted.");
+
+  return character_convert(L, opcode, "UTF-8", text, size);
+}
+
+int lconvert_to(lua_State *L)
+{
+  const char* opcode = luaL_checkstring(L, 1);
+  if (!opcode)
+    return luaL_error(L, "[ICU ERROR]: Invalid conversion character set.");
+
+  size_t size = 0;
+  const char* text = luaL_checklstring(L, 2, &size);
+  if (!text || size < 1)
+    return luaL_error(L, "[ICU ERROR]: Please fill in the text content to be converted.");
+
+  return character_convert(L, "UTF-8", opcode, text, size);
+}
+
+#else
 
 /* 实际转换代码 */
 static inline int iconv_convert(lua_State *L, iconv_t cd, const char* text, size_t size) {
 
-  luaL_Buffer B;
-  luaL_buffinit(L, &B);
+  xrio_Buffer B;
+  xrio_buffinit(L, &B);
 
-  size_t osize = CONVERT_BLOCK;
-  char *buf = alloca(CONVERT_BLOCK);
+  size_t osize = xrio_max_block;
+  char *buf = alloca(xrio_max_block);
   char *out = buf;
   char *in = (char *)text;
-  while (-1 == iconv(cd, (char**)&in, &size, (char**)&out, &osize))
+  while ((size_t)-1 == iconv(cd, (char**)&in, &size, (char**)&out, &osize))
   {
     /* 只有空间不足继续尝试 */
     if (errno != E2BIG) {
       lua_pushboolean(L, 0);
       lua_pushfstring(L, "[ICONV ERROR]: %s. (%d)", strerror(errno), errno);
       iconv_close(cd);
+      xrio_reset(&B);
+      errno = 0;
       return 2;
     }
-    luaL_addlstring(&B, buf, CONVERT_BLOCK - osize);
-    out = buf; osize = CONVERT_BLOCK; errno = 0;
+    xrio_addlstring(&B, buf, xrio_max_block - osize);
+    out = buf; osize = xrio_max_block; errno = 0;
   }
   /* 结束 */
-  luaL_addlstring(&B, buf, CONVERT_BLOCK - osize);
-  luaL_pushresult(&B);
+  xrio_addlstring(&B, buf, xrio_max_block - osize);
+  xrio_pushresult(&B);
   iconv_close(cd);
   errno = 0;
   return 1;
@@ -78,7 +129,8 @@ static inline int convert(lua_State *L, uint8_t mode, const char* opcode, const 
   return iconv_convert(L, cd, text, size);
 }
 
-static int lconvert_convert(lua_State *L) {
+int lconvert_convert(lua_State *L)
+{
   const char* to = luaL_checkstring(L, 1);
   if (!to)
     return luaL_error(L, "[ICONV ERROR]: Invalid conversion character set. #1");
@@ -100,7 +152,8 @@ static int lconvert_convert(lua_State *L) {
 
 
 // 从其他字符集转换为UTF-8
-static int lconvert_from(lua_State *L) {
+int lconvert_from(lua_State *L)
+{
   errno = 0;
   const char* opcode = luaL_checkstring(L, 1);
   if (!opcode)
@@ -115,7 +168,8 @@ static int lconvert_from(lua_State *L) {
 }
 
 // 从UTF-8转换为其他字符集
-static int lconvert_to(lua_State *L) {
+int lconvert_to(lua_State *L)
+{
   errno = 0;
   const char* opcode = luaL_checkstring(L, 1);
   if (!opcode)
@@ -128,6 +182,8 @@ static int lconvert_to(lua_State *L) {
 
   return convert(L, CONVERT_TO, opcode, text, size);
 }
+
+#endif
 
 // 从UTF-8转换为GBK
 static int lconvert_gbk(lua_State *L) {
@@ -206,6 +262,14 @@ static int lconvert_ucs4le(lua_State *L) {
   return convert(L, CONVERT_TO, "UCS-4LE", text, size);
 }
 
+/* 获取libiconv 大、小版本号 */
+static inline void luaL_geticonv(lua_Integer* max, lua_Integer* min) {
+  if (max)
+    *max = _LIBICONV_VERSION >> 8;
+  if (min)
+    *min = (_LIBICONV_VERSION - ((_LIBICONV_VERSION >> 8) << 8));
+}
+
 //  初始化内置库
 static inline void luaL_add_iconv_version(lua_State *L) {
   /* 根据情况拿到大、小版本号 */
@@ -217,8 +281,8 @@ static inline void luaL_add_iconv_version(lua_State *L) {
   luaL_setkn(L, "VERSION", 0.1);
 }
 
-LUAMOD_API int
-luaopen_liconv(lua_State *L) {
+LUAMOD_API int luaopen_liconv(lua_State *L)
+{
   luaL_checkversion(L);
   luaL_Reg iconv_libs[] = {
     { "convert", lconvert_convert },

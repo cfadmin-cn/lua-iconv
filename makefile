@@ -9,23 +9,24 @@ default :
 
 INCLUDES += -I../ -I../../ -I../../../ -I../../src -I/usr/local/include
 LIBS = -L../ -L../../ -L../../../ -L/usr/local/lib
-# CFLAGS = -Wall -O3 -fPIC --shared -DJEMALLOC -ljemalloc -Wl,-rpath,. -Wl,-rpath,.. -Wl,-rpath,/usr/local/lib
-# CFLAGS = -Wall -O3 -fPIC --shared -DTCMALLOC -ltcmalloc -Wl,-rpath,. -Wl,-rpath,.. -Wl,-rpath,/usr/local/lib
+
 CFLAGS = -Wall -O3 -fPIC --shared -Wl,-rpath,. -Wl,-rpath,.. -Wl,-rpath,/usr/local/lib -Wl,-rpath,/usr/local/opt/libiconv/lib
 
 prepare:
-	@wget -O libiconv.tar.gz https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.16.tar.gz && tar zxvf libiconv.tar.gz
+	@wget -O libiconv.tar.gz https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.17.tar.gz && tar zxvf libiconv.tar.gz
 	@cd libiconv-* && ./configure --prefix=/usr/local && make && make install
 	@rm -rf libiconv*
 
 # 构建liconv.so依赖库
-rebuild:
-# @$(MAKE) prepare
-	@$(CC) -o liconv.so liconv.c $(CFLAGS) $(INCLUDES) $(LIBS) -lcore -liconv
-	@mv *.so ../
-
-# 构建liconv.so依赖库
 build:
 # @$(MAKE) prepare
-	@$(CC) -o liconv.so liconv.c $(CFLAGS) $(INCLUDES) $(LIBS) -lcore -liconv
+	@if [ "`uname -s`" = 'Darwin' ] \
+	; then \
+		$$@$(CC) -o liconv.so conv.c $(CFLAGS) $(INCLUDES) $(LIBS) -lcore -licucore ; \
+	elif [ "`uname -s`" = 'Linux' ] \
+	; then \
+		$$@$(CC) -o liconv.so conv.c $(CFLAGS) $(INCLUDES) $(LIBS) -lcore ; \
+	else \
+		$$@$(CC) -o liconv.so conv.c $(CFLAGS) $(INCLUDES) $(LIBS) -lcore -liconv ; \
+	fi;
 	@mv *.so ../
